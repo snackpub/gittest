@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.classMapper">
+
+    <!--
+        方式一：嵌套结果:使用嵌套结果来处理重复的联合结果子集
+        封装联表查询的数据（去除重复的数据）
+     -->
+
+    <select id="getClass" parameterType="Integer" resultMap="classResultMap">
+        select * from clazz c,teacher t where c.teacher_id = t.t_id and c.c_id = #{cid}
+    </select>
+
+    <!-- 使用resultMap映射实体类和字段之间的一一对应关系 -->
+    <resultMap id="classResultMap" type="Classes">
+        <!-- 使用id来映射主键 -->
+        <id property="id" column="c_id" javaType="java.lang.Integer"/>
+        <result property="name" column="c_name" javaType="java.lang.String"/>
+        <association property="teacher" javaType="Teacher">
+            <id property="id" column="t_id" javaType="java.lang.Integer"/>
+            <result property="name" column="t_name" javaType="java.lang.String"/>
+        </association>
+    </resultMap>
+
+    <!--
+        方式二：嵌套查询：通过执行另外一个sql映射语句来返回预期的复杂类型
+        select * from clazz where c_id=1;
+        select * from teacher where t_id=1; // 1 是一个查询得到得到的teacher_id的值
+     -->
+    <select id="getClass2" parameterType="Integer" resultMap="ClassResultMap2">
+       select * from clazz where c_id = #{id}
+    </select>
+    <!-- 使用resultMap映射实体类和字段之间的一一对应关系 -->
+    <resultMap id="ClassResultMap2" type="Classes">
+        <id property="id" column="c_id"/>
+        <result property="name" column="c_name"/>
+        <association property="teacher" column="teacher_id" select="getTeacher"/>
+    </resultMap>
+
+    <select id="getTeacher" parameterType="Integer" resultType="Teacher">
+        select t_id id,t_name name from teacher where t_id=#{id}
+    </select>
+
+
+    <!--
+         根据classId查询对应的班级信息,包括学生,老师
+    -->
+
+    <!--
+        方式一：嵌套结果：使用嵌套结果映射来处理重复的联合结果的子集
+         select * from teacher t,clazz c ,student s where t.t_id=c.teacher_id and c.c_id = s.class_id and c.c_id=1
+         association 关联：用于一对一和多对一
+         collection 集合：一般用于一对多
+    -->
+    <resultMap id="ClassResultMap3" type="Classes">
+        <id property="id" column="c_id"/>
+        <result property="name" column="c_name"/>
+        <association property="teacher" column="teacher_id" javaType="Teacher">
+            <id property="id" column="t_id"/>
+            <result property="name" column="t_name"/>
+        </association>
+        <!-- ofType指定students集合中的对象类型 -->
+        <collection property="students" ofType="Student">
+            <id property="id" column="s_id"/>
+            <result property="name" column="s_name"/>
+        </collection>
+    </resultMap>
+
+    <select id="getClass3" resultMap="ClassResultMap3" parameterType="Integer">
+      select * from teacher t,clazz c ,student s where t.t_id=c.teacher_id and c.c_id = s.class_id and c.c_id=#{id}
+    </select>
+
+    <!--
+        方式二：嵌套查询：通过执行另外一个sql映射语句来返回预期的复杂类型
+        select * from class where c_id = 1;
+        select * from teacher where t_id = 1;   //1 是上一个查询得到的teacher_id的值
+        select * from student where class_id=1; //1 是第一个查询得到的c_id字段的值
+    -->
+
+    <select id="getClass4" resultMap="ClassResultMap4" parameterType="Integer">
+        select * from clazz where c_id = #{id}
+    </select>
+
+    <resultMap id="ClassResultMap4" type="Classes">
+        <id property="id" column="c_id"/>
+        <result property="name" column="c_name"/>
+        <!-- association 关联：主要用于一对一、多对一 -->
+        <association property="teacher" column="teacher_id" javaType="Teacher" select="getTeacher2"/>
+        <collection property="students" column="c_id" ofType="Student" select="getStudent"/>
+    </resultMap>
+
+    <select id="getTeacher2" parameterType="Integer" resultType="Teacher">
+        select t_id id,t_name name from teacher where t_id = #{id}
+    </select>
+
+    <select id="getStudent" parameterType="Integer" resultType="Student">
+        select s_id id,s_name name from student where class_id=#{id}
+    </select>
+
+
+</mapper>

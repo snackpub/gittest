@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 为mapper指定唯一的命名空间，习惯就是包名+sql映射文件名，保证namespace空间的唯一值 -->
+<mapper namespace="mapper.UserMapper">
+
+    <!-- 根据id查询得到一个user对象 -->
+    <select id="getUser" parameterType="int" resultType="User">
+        select * from user where id=#{id}
+    </select>
+
+    <!-- 创建用户 -->
+    <insert id="addUser" parameterType="User">
+        insert  into  user (name,age) values (#{name},#{age})
+    </insert>
+
+    <!-- 删除用户 -->
+    <delete id="delUser" parameterType="int">
+        delete from user where id = #{id}
+    </delete>
+
+    <!-- 修改用户 -->
+    <update id="editUser" parameterType="User">
+      update  user set name=#{name},age=#{age} where id=#{id}
+    </update>
+
+    <!-- 查询所有 -->
+    <select id="getAll" resultType="User">
+        select * from user where 1=1
+        <if test="name==null">
+          and id=#{id}
+        </if>
+    </select>
+</mapper>
