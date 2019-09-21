@@ -21,6 +21,7 @@ public class MybatisUtil {
 
     private static final String RESOURCES = "mybatis-config.xml";
 
+
     static {
         Reader reader = null;
         try {
@@ -45,6 +46,10 @@ public class MybatisUtil {
             sqlSession.close();
         }
         sessionThreadLocal.set(null);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("测试111111111111111");
     }
 
 }
